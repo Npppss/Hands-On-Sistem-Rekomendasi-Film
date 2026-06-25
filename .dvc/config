@@ -1,0 +1,7 @@
+[core]
+    remote = origin
+['remote "origin"']
+    url = https://dagshub.com/Npppss/Hands-On-Sistem-Rekomendasi-Film.dvc
+    auth = basic
+    user = Npppss
+    ask_password = true
