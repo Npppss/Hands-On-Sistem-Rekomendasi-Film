@@ -1,5 +1,6 @@
 /data
 /mlruns
+.dvc/config.local
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
