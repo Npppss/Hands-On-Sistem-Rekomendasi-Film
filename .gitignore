@@ -1,4 +1,3 @@
-/data
 /mlruns
 .dvc/config.local
 __pycache__/
