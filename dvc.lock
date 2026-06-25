@@ -1,0 +1,177 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+    - path: data/credits.csv
+      hash: md5
+      md5: d62a1d7d652d324bebee68782f664fc9
+      size: 189917659
+    - path: data/keywords.csv
+      hash: md5
+      md5: 7d0f5123e11917fa1bea011448e5f73d
+      size: 6231943
+    - path: data/links_small.csv
+      hash: md5
+      md5: 917eddf52079d6ce5c6cfd63b17515f7
+      size: 183372
+    - path: data/movies_metadata.csv
+      hash: md5
+      md5: 42bf3ef8c208a01a4776955875978b1e
+      size: 34445126
+    - path: data/ratings_small.csv
+      hash: md5
+      md5: 8864480f98416ccecaf17aa5263bbea1
+      size: 2438266
+    - path: src/preprocess.py
+      hash: md5
+      md5: 9c59ad67e598ca4ba4024d32bbc43cd8
+      size: 7676
+    params:
+      params.yaml:
+        data:
+          movies_path: data/movies_metadata.csv
+          credits_path: data/credits.csv
+          keywords_path: data/keywords.csv
+          ratings_path: data/ratings_small.csv
+          links_path: data/links_small.csv
+        preprocessing:
+          content_top_k: 15000
+          vote_percentile: 0.9
+          output_processed: data/processed/processed_movies.csv
+          output_ratings_encoded: data/processed/ratings_encoded.csv
+          output_content: data/processed/content_df.csv
+          output_cosine_sim: data/processed/cosine_sim.npy
+          output_id_mappings: data/processed/id_mappings.json
+    outs:
+    - path: data/processed/content_df.csv
+      hash: md5
+      md5: 40aa2217d0417408e980a194294db7f6
+      size: 7020436
+    - path: data/processed/id_mappings.json
+      hash: md5
+      md5: 51977c8aed9b556ae4c5d0515b04ee33
+      size: 737821
+    - path: data/processed/processed_movies.csv
+      hash: md5
+      md5: 80a8bddb68bcef7d41b65e075f2ba204
+      size: 2642651
+    - path: data/processed/ratings_encoded.csv
+      hash: md5
+      md5: 56ac70f42986ddcc69baf69b189db4f6
+      size: 3258792
+  train_demographic:
+    cmd: python src/train_demographic.py
+    deps:
+    - path: data/processed/processed_movies.csv
+      hash: md5
+      md5: 80a8bddb68bcef7d41b65e075f2ba204
+      size: 2642651
+    - path: src/train_demographic.py
+      hash: md5
+      md5: ba5cced2a7124d12a7453ebdaa15593e
+      size: 2784
+    params:
+      params.yaml:
+        preprocessing.vote_percentile: 0.9
+        train_demographic:
+          output_results: data/results/demographic_results.csv
+    outs:
+    - path: data/results/demographic_chart.png
+      hash: md5
+      md5: 14a59bf5c7f6158d237aadcafab54d55
+      size: 42454
+    - path: data/results/demographic_results.csv
+      hash: md5
+      md5: 833aa45e904dabd8ef4d6837792c6e10
+      size: 499
+  train_content:
+    cmd: python src/train_content.py
+    deps:
+    - path: data/processed/content_df.csv
+      hash: md5
+      md5: 40aa2217d0417408e980a194294db7f6
+      size: 7020436
+    - path: src/train_content.py
+      hash: md5
+      md5: bf929e676eb40664133ba4033ae4d0eb
+      size: 2609
+    params:
+      params.yaml:
+        preprocessing.output_cosine_sim: data/processed/cosine_sim.npy
+    outs:
+    - path: data/processed/content_index.csv
+      hash: md5
+      md5: df00a6ca36f3fa6e5860431e446d5452
+      size: 333499
+    - path: data/processed/cosine_sim.npy
+      hash: md5
+      md5: 42d11286c9e48356efa14fea61819858
+      size: 1800000128
+  train_collaborative:
+    cmd: python src/train_collaborative.py
+    deps:
+    - path: data/processed/ratings_encoded.csv
+      hash: md5
+      md5: 56ac70f42986ddcc69baf69b189db4f6
+      size: 3258792
+    - path: src/train_collaborative.py
+      hash: md5
+      md5: 7742ea64c1dfe57cfabf1da96ed107e4
+      size: 5924
+    params:
+      params.yaml:
+        preprocessing.output_ratings_encoded: data/processed/ratings_encoded.csv
+        train_collaborative:
+          embedding_size: 50
+          learning_rate: 0.001
+          batch_size: 64
+          epochs: 5
+          test_size: 0.2
+          random_state: 42
+          output_model: models/collaborative_model.keras
+          output_history: data/results/training_history.json
+    outs:
+    - path: data/results/loss_curve.png
+      hash: md5
+      md5: 524e14d86ea2e4582a1bedbe1627fd2d
+      size: 32834
+    - path: data/results/training_history.json
+      hash: md5
+      md5: 231822bf4316b9680e379f3d23785bfc
+      size: 620
+    - path: models/collaborative_model.keras
+      hash: md5
+      md5: 290388a8b487e6effc13f4404e1e8a5a
+      size: 5982892
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+    - path: data/processed/cosine_sim.npy
+      hash: md5
+      md5: 42d11286c9e48356efa14fea61819858
+      size: 1800000128
+    - path: data/results/demographic_results.csv
+      hash: md5
+      md5: 833aa45e904dabd8ef4d6837792c6e10
+      size: 499
+    - path: data/results/training_history.json
+      hash: md5
+      md5: 231822bf4316b9680e379f3d23785bfc
+      size: 620
+    - path: src/evaluate.py
+      hash: md5
+      md5: e4753ea6e8f1902fe5f0a279fca527df
+      size: 3611
+    params:
+      params.yaml:
+        evaluate:
+          output_metrics: metrics/metrics.json
+        preprocessing.output_cosine_sim: data/processed/cosine_sim.npy
+        train_collaborative.output_history: data/results/training_history.json
+        train_demographic.output_results: data/results/demographic_results.csv
+    outs:
+    - path: metrics/metrics.json
+      hash: md5
+      md5: 4f4e48186d929fd859e9d3933574ade8
+      size: 473

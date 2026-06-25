@@ -1,0 +1,33 @@
+## Model & Training Hyperparameters
+
+data:
+  movies_path: data/movies_metadata.csv
+  credits_path: data/credits.csv
+  keywords_path: data/keywords.csv
+  ratings_path: data/ratings_small.csv
+  links_path: data/links_small.csv
+
+preprocessing:
+  content_top_k: 15000  # Top K film paling populer untuk Content-Based
+  vote_percentile: 0.90  # Persentil minimum vote untuk Demographic Filtering
+  output_processed: data/processed/processed_movies.csv
+  output_ratings_encoded: data/processed/ratings_encoded.csv
+  output_content: data/processed/content_df.csv
+  output_cosine_sim: data/processed/cosine_sim.npy
+  output_id_mappings: data/processed/id_mappings.json
+
+train_demographic:
+  output_results: data/results/demographic_results.csv
+
+train_collaborative:
+  embedding_size: 50
+  learning_rate: 0.001
+  batch_size: 64
+  epochs: 5
+  test_size: 0.2
+  random_state: 42
+  output_model: models/collaborative_model.keras
+  output_history: data/results/training_history.json
+
+evaluate:
+  output_metrics: metrics/metrics.json

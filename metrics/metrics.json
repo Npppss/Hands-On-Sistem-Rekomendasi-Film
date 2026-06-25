@@ -1,0 +1,20 @@
+{
+  "demographic": {
+    "top10_avg_score": 8.2861,
+    "top10_avg_vote_count": 6208.0,
+    "top10_avg_vote_average": 8.42
+  },
+  "content_based": {
+    "corpus_size": 15000,
+    "mean_similarity": 0.006579,
+    "max_similarity": 0.99562
+  },
+  "collaborative": {
+    "final_train_loss": 0.696623,
+    "final_val_loss": 1.056539,
+    "best_val_loss": 1.056539,
+    "final_train_mae": 0.633994,
+    "final_val_mae": 0.761675,
+    "epochs_trained": 5
+  }
+}

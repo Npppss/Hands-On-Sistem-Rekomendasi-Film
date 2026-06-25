@@ -1,0 +1,10 @@
+pandas
+numpy
+matplotlib
+scikit-learn
+tensorflow
+mlflow
+dagshub
+jupyter
+ipykernel
+dvc

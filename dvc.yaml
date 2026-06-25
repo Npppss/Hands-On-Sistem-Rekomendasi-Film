@@ -1,0 +1,101 @@
+stages:
+
+  # =============================================================
+  # STAGE 1: PREPROCESS
+  # Membersihkan & menggabungkan dataset film, membuat soup teks,
+  # dan meng-encode ID user & film untuk collaborative filtering.
+  # =============================================================
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+      - src/preprocess.py
+      - data/movies_metadata.csv
+      - data/credits.csv
+      - data/keywords.csv
+      - data/ratings_small.csv
+      - data/links_small.csv
+    params:
+      - params.yaml:
+          - data
+          - preprocessing
+    outs:
+      - data/processed/processed_movies.csv
+      - data/processed/content_df.csv
+      - data/processed/ratings_encoded.csv
+      - data/processed/id_mappings.json
+
+  # =============================================================
+  # STAGE 2a: TRAIN DEMOGRAPHIC FILTERING
+  # Menghitung Weighted Rating IMDB untuk semua film
+  # dan menyimpan Top 10 film terpopuler.
+  # =============================================================
+  train_demographic:
+    cmd: python src/train_demographic.py
+    deps:
+      - src/train_demographic.py
+      - data/processed/processed_movies.csv
+    params:
+      - params.yaml:
+          - preprocessing.vote_percentile
+          - train_demographic
+    outs:
+      - data/results/demographic_results.csv
+      - data/results/demographic_chart.png
+
+  # =============================================================
+  # STAGE 2b: TRAIN CONTENT-BASED FILTERING
+  # Membuat TF-IDF Matrix dan menghitung Cosine Similarity Matrix
+  # dari metadata soup tiap film.
+  # =============================================================
+  train_content:
+    cmd: python src/train_content.py
+    deps:
+      - src/train_content.py
+      - data/processed/content_df.csv
+    params:
+      - params.yaml:
+          - preprocessing.output_cosine_sim
+    outs:
+      - data/processed/cosine_sim.npy
+      - data/processed/content_index.csv
+
+  # =============================================================
+  # STAGE 2c: TRAIN COLLABORATIVE FILTERING
+  # Melatih Neural Network RecommenderNet Keras Embedding
+  # menggunakan data rating user-item.
+  # =============================================================
+  train_collaborative:
+    cmd: python src/train_collaborative.py
+    deps:
+      - src/train_collaborative.py
+      - data/processed/ratings_encoded.csv
+    params:
+      - params.yaml:
+          - train_collaborative
+          - preprocessing.output_ratings_encoded
+    outs:
+      - models/collaborative_model.keras
+      - data/results/training_history.json
+      - data/results/loss_curve.png
+
+  # =============================================================
+  # STAGE 3: EVALUATE
+  # Mengumpulkan metrik dari semua model dan menyimpannya
+  # ke metrics/metrics.json untuk di-tracking DVC & Dagshub.
+  # =============================================================
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+      - src/evaluate.py
+      - data/results/demographic_results.csv
+      - data/processed/cosine_sim.npy
+      - data/results/training_history.json
+    params:
+      - params.yaml:
+          - evaluate
+          - train_demographic.output_results
+          - preprocessing.output_cosine_sim
+          - train_collaborative.output_history
+    metrics:
+      - metrics/metrics.json:
+          cache: false
